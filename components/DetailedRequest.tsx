@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useCallback } from 'react';
 // Fix: Added StickerDetail import to use in type guards.
 import { DetailedRequestData, StickerDetail, LightingOption, TotemSize, TotemFeature, BannerFaixaDetails, VehicleDetails } from '../types.ts';
@@ -304,6 +305,23 @@ export const DetailedRequest: React.FC<DetailedRequestProps> = ({ requestData, o
 
     }, [requestData, onDataChange]);
 
+    const handleElementsChange = (newElements: string[]) => {
+        const oldElements = requestData.elements;
+        const justAddedAcm = !oldElements.includes('Revestimento em ACM') && newElements.includes('Revestimento em ACM');
+        
+        const changes: Partial<DetailedRequestData> = { elements: newElements };
+
+        if (justAddedAcm) {
+            // Default to 'Fachada Completa (Tudo)' when ACM is first selected.
+            changes.acmPlacement = {
+                ...requestData.acmPlacement,
+                selections: ['Fachada Completa (Tudo)'],
+            };
+        }
+
+        onDataChange(changes);
+    };
+
     const handleAcmColorChange = (colorValue: string, colorName?: string) => {
         onDataChange({ acmColor: colorValue, acmColorName: colorName || colorValue });
     };
@@ -502,7 +520,7 @@ export const DetailedRequest: React.FC<DetailedRequestProps> = ({ requestData, o
                  <div className="space-y-8 p-2">
                     <ElementSelector 
                         selectedElements={requestData.elements} 
-                        onChange={(elements) => onDataChange({ elements })}
+                        onChange={handleElementsChange}
                         activeElement={activeDetailElement}
                     />
                     

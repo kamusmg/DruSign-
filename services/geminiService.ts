@@ -139,7 +139,7 @@ export const generateRedesign = async (
     }
     
     // --- Step 1: Generate the new facade image with retry logic ---
-    const MAX_RETRIES = 2;
+    const MAX_RETRIES = 3;
     let successfulResponse: GenerateContentResponse | null = null;
     let lastError: any = null;
 
@@ -169,7 +169,9 @@ export const generateRedesign = async (
         }
         
         if (i < MAX_RETRIES - 1) {
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s before retrying
+            const delay = Math.pow(2, i + 1) * 1000; // Exponential backoff: 2s, 4s
+            console.log(`Waiting ${delay}ms before retrying...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
         }
     }
 
