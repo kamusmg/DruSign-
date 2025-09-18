@@ -1,14 +1,8 @@
 import { GoogleGenAI, Type, Modality, GenerateContentResponse } from "@google/genai";
 import { DetailedRequestData, Logo, TechnicalPlanItem, RedesignResult } from '../types.ts';
 
-// Adhering to the project guidelines, which mandate using process.env.API_KEY.
-// The execution environment is expected to provide this variable.
-if (typeof process === 'undefined' || !process.env || !process.env.API_KEY) {
-    // This error will be caught by the App component and displayed to the user.
-    throw new Error("API key not found. Please ensure the API_KEY environment variable is set correctly in your deployment settings (e.g., Vercel).");
-}
+// Guideline: Always use new GoogleGenAI({apiKey: process.env.API_KEY});
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 
 // Helper to convert image base64 to Part
 const fileToGenerativePart = (base64Data: string, mimeType: string) => {
