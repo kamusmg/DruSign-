@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   RedesignResult,
@@ -34,6 +35,7 @@ import { ResultDisplay } from './components/ResultDisplay.tsx';
 import { StepCard } from './components/StepCard.tsx';
 import { EnhanceConfirmModal } from './components/EnhanceConfirmModal.tsx';
 import { AreaEditor } from './components/AreaEditor.tsx';
+import { ErrorDisplay } from './components/ErrorDisplay.tsx';
 
 
 type AppStep = 'onboarding' | 'upload' | 'details' | 'loading' | 'result';
@@ -118,11 +120,32 @@ function App() {
     const savedState = loadState<AppState>();
     return savedState || getInitialState();
   });
+  const [globalError, setGlobalError] = useState<Error | null>(null);
 
   // Effect for saving state to localStorage
   useEffect(() => {
     saveState(appState);
   }, [appState]);
+
+  // Effect for global error handling
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+        console.error("Global error caught:", event.error);
+        setGlobalError(event.error instanceof Error ? event.error : new Error(String(event.error)));
+    };
+    const handleRejection = (event: PromiseRejectionEvent) => {
+        console.error("Global rejection caught:", event.reason);
+        setGlobalError(event.reason instanceof Error ? event.reason : new Error(String(event.reason)));
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleRejection);
+
+    return () => {
+        window.removeEventListener('error', handleError);
+        window.removeEventListener('unhandledrejection', handleRejection);
+    };
+  }, []);
 
   // Handler to close onboarding and move to upload
   const handleOnboardingClose = () => {
@@ -165,6 +188,7 @@ function App() {
               ...getInitialState(),
               step: 'upload'
           });
+          setGlobalError(null);
       }
   }
 
@@ -247,14 +271,18 @@ function App() {
           }));
       } catch (error) {
           console.error("Redesign generation failed:", error);
-          let alertMessage = "Ocorreu um erro ao gerar o redesign. Por favor, tente novamente.";
-          if (error instanceof Error && error.message === "AI_IMAGE_GENERATION_FAILED") {
-              alertMessage = "A IA não conseguiu gerar uma imagem. Isso pode acontecer por alguns motivos:\n\n- O pedido pode ter sido bloqueado por filtros de segurança (ex: uso de marcas registradas, nomes de pessoas, etc.).\n- A IA pode ter tido dificuldade em interpretar o pedido.\n\nPor favor, tente simplificar ou reformular sua solicitação e tente novamente.";
-          } else if (error instanceof Error) {
-             alertMessage = `Redesign generation failed:\n${error.message}`;
+          let customError: Error;
+          if (error instanceof Error) {
+              if (error.message === "AI_IMAGE_GENERATION_FAILED") {
+                  customError = new Error("A IA não conseguiu gerar uma imagem. Isso pode acontecer por alguns motivos:\n\n- O pedido pode ter sido bloqueado por filtros de segurança (ex: uso de marcas registradas, nomes de pessoas, etc.).\n- A IA pode ter tido dificuldade em interpretar o pedido.\n\nPor favor, tente simplificar ou reformular sua solicitação e tente novamente.");
+                  customError.name = "Falha na Geração de Imagem";
+              } else {
+                 customError = error;
+              }
+          } else {
+             customError = new Error(String(error) || "Ocorreu um erro desconhecido ao gerar o redesign.");
           }
-          alert(alertMessage);
-          setAppState(prev => ({ ...prev, step: 'details' }));
+          setGlobalError(customError);
       }
   }, [appState.originalImage, appState.requestData, appState.historyIndex]);
 
@@ -330,7 +358,8 @@ function App() {
             downloadBlob(blob, filename);
         } catch (error) {
             console.error(`Failed to generate ${key}:`, error);
-            alert(`Ocorreu um erro ao gerar o arquivo. Por favor, tente novamente.`);
+            const customError = error instanceof Error ? error : new Error(`Ocorreu um erro ao gerar o arquivo ${key}.`);
+            setGlobalError(customError);
         } finally {
             setAppState(prev => ({ ...prev, deliverableStatus: { key: null, message: '' }}));
         }
@@ -439,6 +468,8 @@ function App() {
 
   return (
     <div className="bg-gray-100 dark:bg-black min-h-screen text-gray-900 dark:text-gray-100 font-sans">
+      {globalError && <ErrorDisplay error={globalError} onReset={handleReset} />}
+
       {appState.step === 'onboarding' && <OnboardingModal onClose={handleOnboardingClose} />}
       <EnhanceConfirmModal 
         isOpen={appState.isEnhanceModalOpen}
