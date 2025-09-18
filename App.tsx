@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   RedesignResult,
@@ -246,15 +245,21 @@ function App() {
               historyIndex: newHistory.length,
           }));
       } catch (error) {
-          console.error("Redesign generation failed:", error);
-          let alertMessage = "Ocorreu um erro ao gerar o redesign. Por favor, tente novamente.";
-          if (error instanceof Error && error.message === "AI_IMAGE_GENERATION_FAILED") {
-              alertMessage = "A IA não conseguiu gerar uma imagem. Isso pode acontecer por alguns motivos:\n\n- O pedido pode ter sido bloqueado por filtros de segurança (ex: uso de marcas registradas, nomes de pessoas, etc.).\n- A IA pode ter tido dificuldade em interpretar o pedido.\n\nPor favor, tente simplificar ou reformular sua solicitação e tente novamente.";
-          } else if (error instanceof Error) {
-             alertMessage = `Redesign generation failed:\n${error.message}`;
-          }
-          alert(alertMessage);
-          setAppState(prev => ({ ...prev, step: 'details' }));
+            console.error("Redesign generation failed:", error);
+            let alertMessage = "Ocorreu um erro ao gerar o redesign. Por favor, tente novamente.";
+            
+            if (error instanceof Error) {
+                if (error.message === "AI_IMAGE_GENERATION_FAILED") {
+                    alertMessage = "A IA não conseguiu gerar uma imagem. Isso pode acontecer por alguns motivos:\n\n- O pedido pode ter sido bloqueado por filtros de segurança (ex: uso de marcas registradas, nomes de pessoas, etc.).\n- A IA pode ter tido dificuldade em interpretar o pedido.\n\nPor favor, tente simplificar ou reformular sua solicitação e tente novamente.";
+                } else if (error.message.includes('API key not valid') || error.message.includes('VITE_API_KEY')) {
+                    alertMessage = "Erro de Autenticação: A chave da API do Gemini não é válida ou não foi configurada. Na Vercel, certifique-se que a variável de ambiente se chama 'VITE_API_KEY' e que o projeto foi 're-deployed' após a alteração.";
+                } else {
+                    alertMessage = `A geração falhou com o seguinte erro:\n${error.message}\n\nPor favor, tente novamente ou ajuste sua solicitação.`;
+                }
+            }
+            
+            alert(alertMessage);
+            setAppState(prev => ({ ...prev, step: 'details' }));
       }
   }, [appState.originalImage, appState.requestData, appState.historyIndex]);
 
@@ -434,40 +439,41 @@ function App() {
         );
     }
   };
-  
-  const currentResult = appState.resultHistory[appState.historyIndex];
 
   return (
-    <div className="bg-gray-100 dark:bg-black min-h-screen text-gray-900 dark:text-gray-100 font-sans">
-      {appState.step === 'onboarding' && <OnboardingModal onClose={handleOnboardingClose} />}
-      <EnhanceConfirmModal 
-        isOpen={appState.isEnhanceModalOpen}
-        onClose={() => setAppState(prev => ({...prev, isEnhanceModalOpen: false}))}
-        onConfirmEnhance={() => handleGenerateRedesign(true)}
-        onConfirmOriginal={() => handleGenerateRedesign(false)}
-        isLoading={appState.step === 'loading'}
-      />
-
-      {appState.isCalibrationModalOpen && currentResult && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="w-full max-w-5xl">
-            <AreaEditor
-              imageSrc={currentResult.redesignedImage}
-              initialAreas={[]}
-              initialCalibration={appState.calibration}
-              onAreasChange={() => {}}
-              onCalibrationChange={handleFinishCalibration}
-              onCancel={() => handleFinishCalibration(null)}
-              isCalibrationMode={true}
-            />
-          </div>
-        </div>
-      )}
-      
-      <Header onHome={handleBackToUpload} onReset={appState.step !== 'upload' ? handleReset : undefined} />
+    <div className="min-h-screen bg-gray-100 dark:bg-black text-gray-800 dark:text-gray-200">
+      {appState.step !== 'onboarding' && <Header onReset={handleReset} onHome={handleBackToUpload} />}
       <main className="container mx-auto p-4 md:p-8">
+        {appState.step === 'onboarding' && <OnboardingModal onClose={handleOnboardingClose} />}
         {renderContent()}
       </main>
+      
+       {appState.isEnhanceModalOpen && (
+          <EnhanceConfirmModal 
+            isOpen={appState.isEnhanceModalOpen}
+            onClose={() => setAppState(prev => ({...prev, isEnhanceModalOpen: false}))}
+            onConfirmEnhance={() => handleGenerateRedesign(true)}
+            onConfirmOriginal={() => handleGenerateRedesign(false)}
+            isLoading={appState.step === 'loading'}
+          />
+       )}
+
+      {appState.isCalibrationModalOpen && appState.originalImage && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-fade-in">
+              <div className="w-full max-w-5xl">
+                <AreaEditor
+                  imageSrc={appState.originalImage}
+                  initialAreas={[]}
+                  initialCalibration={null}
+                  onAreasChange={() => {}} // Not needed for calibration only
+                  onCalibrationChange={handleFinishCalibration}
+                  onCancel={() => handleFinishCalibration(null)}
+                  isCalibrationMode
+                />
+              </div>
+          </div>
+      )}
+
     </div>
   );
 }

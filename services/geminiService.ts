@@ -1,8 +1,20 @@
 import { GoogleGenAI, Type, Modality, GenerateContentResponse } from "@google/genai";
 import { DetailedRequestData, Logo, TechnicalPlanItem, RedesignResult } from '../types.ts';
 
-// Guideline: Always use new GoogleGenAI({apiKey: process.env.API_KEY});
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Guideline update for Vercel/frontend compatibility:
+// Use import.meta.env for browser-safe environment variables.
+// The user must set VITE_API_KEY in their Vercel project settings.
+// FIX: Safely access VITE_API_KEY to prevent a TypeError if `import.meta.env` is undefined during runtime.
+// This is a common issue in environments without a proper Vite build process.
+const env = (import.meta as any).env;
+const apiKey = env ? env.VITE_API_KEY : undefined;
+
+if (!apiKey) {
+    // This error will be caught by the App component and displayed to the user.
+    throw new Error("Missing VITE_API_KEY environment variable. Please set it in your Vercel project settings.");
+}
+const ai = new GoogleGenAI({ apiKey });
+
 
 // Helper to convert image base64 to Part
 const fileToGenerativePart = (base64Data: string, mimeType: string) => {
