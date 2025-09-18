@@ -251,8 +251,8 @@ function App() {
             if (error instanceof Error) {
                 if (error.message === "AI_IMAGE_GENERATION_FAILED") {
                     alertMessage = "A IA não conseguiu gerar uma imagem. Isso pode acontecer por alguns motivos:\n\n- O pedido pode ter sido bloqueado por filtros de segurança (ex: uso de marcas registradas, nomes de pessoas, etc.).\n- A IA pode ter tido dificuldade em interpretar o pedido.\n\nPor favor, tente simplificar ou reformular sua solicitação e tente novamente.";
-                } else if (error.message.includes('API key not valid') || error.message.includes('VITE_API_KEY')) {
-                    alertMessage = "Erro de Autenticação: A chave da API do Gemini não é válida ou não foi configurada. Na Vercel, certifique-se que a variável de ambiente se chama 'VITE_API_KEY' e que o projeto foi 're-deployed' após a alteração.";
+                } else if (error.message.includes('API key not valid') || error.message.includes('API_KEY')) {
+                    alertMessage = "Erro de Autenticação: A chave da API do Gemini não é válida ou não foi encontrada. Verifique se a variável de ambiente 'API_KEY' está configurada corretamente nas configurações do seu projeto na Vercel e se o projeto foi atualizado (re-deployed) após a alteração.";
                 } else {
                     alertMessage = `A geração falhou com o seguinte erro:\n${error.message}\n\nPor favor, tente novamente ou ajuste sua solicitação.`;
                 }
