@@ -10,6 +10,10 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ error, onReset }) =>
   if (!error) {
     return null;
   }
+  
+  // A specific check for the handled image generation failure.
+  // This error has a user-friendly message that is sufficient.
+  const isGenerationFailure = error.name === 'Falha na Geração de Imagem';
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-fade-in" role="alertdialog" aria-modal="true" aria-labelledby="error-title">
@@ -31,12 +35,23 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ error, onReset }) =>
         </div>
 
         <div className="mt-6 bg-red-100 dark:bg-gray-800 p-4 rounded-lg text-sm">
-            <details>
+            <details open>
                 <summary className="font-semibold text-red-800 dark:text-red-300 cursor-pointer">Detalhes Técnicos</summary>
-                <div className="mt-2 text-red-700 dark:text-red-400 font-mono text-xs whitespace-pre-wrap break-all">
-                    <p><strong>Tipo:</strong> {error.name}</p>
-                    <p><strong>Mensagem:</strong> {error.message}</p>
-                    {error.stack && <p className="mt-2"><strong>Stack Trace:</strong><br/>{error.stack}</p>}
+                <div className="mt-2 text-red-700 dark:text-red-400 font-mono text-xs whitespace-pre-wrap break-words">
+                  {/* For controlled generation failures, show only the helpful message. */}
+                  {isGenerationFailure ? (
+                    <>
+                      <p><strong>Tipo:</strong> {error.name}</p>
+                      <p><strong>Mensagem:</strong> {error.message}</p>
+                    </>
+                  ) : (
+                    /* For all other unexpected errors, show full details. */
+                    <>
+                      <p><strong>Tipo:</strong> {error.name}</p>
+                      <p><strong>Mensagem:</strong> {error.message}</p>
+                      {error.stack && <p className="mt-2"><strong>Stack Trace:</strong><br/>{error.stack}</p>}
+                    </>
+                  )}
                 </div>
             </details>
         </div>
