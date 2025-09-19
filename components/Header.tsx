@@ -14,7 +14,7 @@ export const Header: React.FC<HeaderProps> = ({ onHome, onReset }) => {
         <div className="flex items-center space-x-3">
           <DruSignLogoIcon className="w-8 h-8 text-cyan-500" />
           <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-            DRU SIGN <span className="font-light text-cyan-500">Redesign de Fachada com IA</span>
+            DRU SIGN <span className="font-light text-cyan-500">Redesign com Fachada Pronta AI</span>
           </h1>
         </div>
         <div className="flex items-center gap-2">
