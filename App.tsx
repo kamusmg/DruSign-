@@ -49,6 +49,7 @@ interface AppState {
   loadingStep: string;
   isEnhanceModalOpen: boolean;
   isCalibrationModalOpen: boolean;
+  isEditingGeneratedImage: boolean;
   calibration: Calibration | null;
   pendingDeliverable: DeliverableKey | null;
   deliverableStatus: {
@@ -110,6 +111,7 @@ const getInitialState = (): AppState => ({
   loadingStep: 'Preparando a IA...',
   isEnhanceModalOpen: false,
   isCalibrationModalOpen: false,
+  isEditingGeneratedImage: false,
   calibration: null,
   pendingDeliverable: null,
   deliverableStatus: { key: null, message: '' },
@@ -164,6 +166,7 @@ function App() {
         resultHistory: [], // Clear history when a new image is uploaded
         historyIndex: -1,
         calibration: null, // Reset calibration on new image
+        isEditingGeneratedImage: false,
       }));
     }
   };
@@ -178,6 +181,7 @@ function App() {
       },
       resultHistory: [],
       historyIndex: -1,
+      isEditingGeneratedImage: false,
     }));
   };
   
@@ -302,6 +306,7 @@ function App() {
         ...prev,
         step: 'details',
         originalImage: currentResult.redesignedImage,
+        isEditingGeneratedImage: true,
         requestData: {
             ...initialRequestData,
             companyName: prev.requestData.companyName,
@@ -421,6 +426,7 @@ function App() {
             onSubmit={handleSubmitRequest}
             onBack={handleBackToUpload}
             originalImage={appState.originalImage}
+            isEditingGeneratedImage={appState.isEditingGeneratedImage}
           />
         );
       case 'loading':
@@ -467,7 +473,7 @@ function App() {
   const currentResult = appState.resultHistory[appState.historyIndex];
 
   return (
-    <div className="bg-gray-100 dark:bg-black min-h-screen text-gray-900 dark:text-gray-100 font-sans">
+    <div className="bg-gray-100 dark:bg-black min-h-screen text-gray-900 dark:text-gray-100 font-sans flex flex-col">
       {globalError && <ErrorDisplay error={globalError} onReset={handleReset} />}
 
       {appState.step === 'onboarding' && <OnboardingModal onClose={handleOnboardingClose} />}
@@ -496,9 +502,12 @@ function App() {
       )}
       
       <Header onHome={handleBackToUpload} onReset={appState.step !== 'upload' ? handleReset : undefined} />
-      <main className="container mx-auto p-4 md:p-8">
+      <main className="container mx-auto p-4 md:p-8 flex-grow">
         {renderContent()}
       </main>
+      <footer className="text-center py-4 px-8 text-xs text-gray-500 dark:text-gray-600">
+        <p>Feito por Kamus &amp; Gemini &nbsp;&middot;&nbsp; Powered by Google AI Studio &nbsp;&middot;&nbsp; S/N: 2024-DRU-FP-001</p>
+      </footer>
     </div>
   );
 }

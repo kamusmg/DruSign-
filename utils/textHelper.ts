@@ -35,8 +35,12 @@ export const generateStickerDescriptionText = (stickers: StickerDetail[]): strin
 /**
  * Generates a simple, descriptive prompt from the request data, based on the user's preferred older style.
  */
-export const generateInspirationText = (data: DetailedRequestData): string => {
+export const generateInspirationText = (data: DetailedRequestData, isEditing: boolean = false): string => {
   let parts: string[] = [];
+
+  if (isEditing) {
+      parts.push("Use the provided image as the primary visual foundation. Preserve its existing architectural style, materials, and camera perspective. Only apply the following specific changes and additions. Do not radically alter the base image unless explicitly asked to do so.");
+  }
 
   if (data.companyName) {
       parts.push(`Projeto para a empresa "${data.companyName}".`);

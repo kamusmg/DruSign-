@@ -214,6 +214,7 @@ interface DetailedRequestProps {
     onSubmit: (useEnhancedPrompt: boolean, data: DetailedRequestData) => Promise<void>;
     onBack: () => void;
     originalImage: string;
+    isEditingGeneratedImage: boolean;
 }
 
 const acmPlacementOptions = [
@@ -246,7 +247,7 @@ const faixaPresetSizes = ['60x200cm', '60x300cm', '100x50cm', '200x100cm'];
 const vehicleTypeOptions = ['Van de Carga', 'Carro Popular', 'Moto de Entrega', 'Caminhonete / SUV'];
 
 
-export const DetailedRequest: React.FC<DetailedRequestProps> = ({ requestData, onDataChange, onSubmit, onBack, originalImage }) => {
+export const DetailedRequest: React.FC<DetailedRequestProps> = ({ requestData, onDataChange, onSubmit, onBack, originalImage, isEditingGeneratedImage }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [logoColors, setLogoColors] = useState<string[]>([]);
     const [isAcmSelectorOpen, setIsAcmSelectorOpen] = useState(true);
@@ -295,7 +296,7 @@ export const DetailedRequest: React.FC<DetailedRequestProps> = ({ requestData, o
 
     useEffect(() => {
         const updateInspiration = () => {
-            const generatedText = generateInspirationText(requestData);
+            const generatedText = generateInspirationText(requestData, isEditingGeneratedImage);
             if (requestData.inspiration !== generatedText) {
                 onDataChange({ inspiration: generatedText });
             }
@@ -303,7 +304,7 @@ export const DetailedRequest: React.FC<DetailedRequestProps> = ({ requestData, o
         
         updateInspiration();
 
-    }, [requestData, onDataChange]);
+    }, [requestData, onDataChange, isEditingGeneratedImage]);
 
     const handleElementsChange = (newElements: string[]) => {
         const oldElements = requestData.elements;

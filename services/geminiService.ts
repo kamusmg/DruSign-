@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type, Modality, GenerateContentResponse } from "@google/genai";
+import { GoogleGenAI, Type, Modality, GenerateContentResponse, HarmCategory, HarmBlockThreshold } from "@google/genai";
 import { DetailedRequestData, Logo, TechnicalPlanItem, RedesignResult } from '../types.ts';
 
 // Guideline: Always use new GoogleGenAI({apiKey: process.env.API_KEY});
@@ -146,11 +146,31 @@ export const generateRedesign = async (
     for (let i = 0; i < MAX_RETRIES; i++) {
         try {
             console.log(`Image generation attempt ${i + 1}...`);
+            // FIX: The 'safetySettings' property must be nested inside the 'config' object.
             const imageResponse = await ai.models.generateContent({
                 model,
                 contents: { parts: allParts },
                 config: {
                     responseModalities: [Modality.IMAGE, Modality.TEXT],
+                    // FIX: Use HarmCategory and HarmBlockThreshold enums for safety settings.
+                    safetySettings: [
+                        {
+                            category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+                            threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+                        },
+                        {
+                            category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                            threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+                        },
+                        {
+                            category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                            threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+                        },
+                        {
+                            category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                            threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+                        },
+                    ],
                 },
             });
             
